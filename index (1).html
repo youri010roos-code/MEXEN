@@ -1,0 +1,447 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0b0d12">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Mexen">
+<meta name="format-detection" content="telephone=no">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="icon" type="image/png" href="apple-touch-icon.png">
+<title>Mexen</title>
+<style>
+:root{
+  --bg:#0b0d12;--panel:#14171f;--panel2:#1b1f2a;--line:#262b38;
+  --text:#eef1f7;--muted:#8a92a6;--accent:#ffcc33;--accent-ink:#1a1400;
+  --red:#ff5c5c;--green:#3ddc97;--radius:18px
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{min-height:100%}
+html{-webkit-text-size-adjust:100%;text-size-adjust:100%;background:#0b0d12}
+body{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,Inter,system-ui,"Segoe UI",Roboto,sans-serif;-webkit-font-smoothing:antialiased;-webkit-tap-highlight-color:transparent;overscroll-behavior-y:none;-webkit-user-select:none;user-select:none}
+button,input{font:inherit;color:inherit;-webkit-appearance:none;appearance:none;border-radius:0}
+button{touch-action:manipulation;cursor:pointer}
+input{-webkit-user-select:text;user-select:text}
+.app{max-width:520px;margin:0 auto;padding:calc(14px + env(safe-area-inset-top)) 16px calc(24px + env(safe-area-inset-bottom))}
+header{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px}
+.logo{font-weight:800;font-size:24px;letter-spacing:-.03em}
+.logo span{color:var(--accent)}
+.hbtns{display:flex;gap:8px}
+.iconbtn{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:8px 12px;font-size:14px;cursor:pointer}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:18px;margin-bottom:14px}
+h2{font-size:20px;font-weight:800;letter-spacing:-.02em;margin-bottom:14px}
+.muted{color:var(--muted);font-size:14px}
+.btn{width:100%;padding:16px;border-radius:14px;border:0;font-weight:700;font-size:17px;cursor:pointer;transition:transform .08s,opacity .2s}
+.btn:active{transform:scale(.98)}
+.btn:disabled{opacity:.4}
+.btn.primary{background:var(--accent);color:var(--accent-ink)}
+.btn.ghost{background:var(--panel2);border:1px solid var(--line)}
+.btn.small{padding:12px;font-size:15px}
+.row{display:flex;gap:10px}
+.row>*{flex:1}
+
+/* setup */
+.pl{display:flex;gap:8px;margin-bottom:8px}
+.pl input{flex:1;background:var(--panel2);border:1px solid var(--line);border-radius:12px;padding:13px 14px;font-size:16px;outline:none}
+.pl input:focus{border-color:var(--accent)}
+.pl .x{width:46px;background:var(--panel2);border:1px solid var(--line);border-radius:12px;cursor:pointer;color:var(--muted);font-size:18px}
+.opt{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:12px 0;border-top:1px solid var(--line)}
+.opt:first-of-type{border-top:0}
+.opt b{display:block;font-size:15px}
+.switch{position:relative;width:50px;height:30px;flex:none}
+.switch input{opacity:0;width:0;height:0}
+.switch span{position:absolute;top:0;right:0;bottom:0;left:0;background:var(--panel2);border:1px solid var(--line);border-radius:30px;transition:.2s;cursor:pointer}
+.switch span:before{content:"";position:absolute;width:22px;height:22px;left:3px;top:3px;background:var(--muted);border-radius:50%;transition:.2s}
+.switch input:checked+span{background:var(--accent);border-color:var(--accent)}
+.switch input:checked+span:before{transform:translateX(20px);background:var(--accent-ink)}
+.stepper{display:flex;align-items:center;gap:10px}
+.stepper button{width:36px;height:36px;border-radius:10px;background:var(--panel2);border:1px solid var(--line);cursor:pointer;font-size:18px}
+.stepper output{min-width:20px;text-align:center;font-weight:700}
+
+/* game */
+.topbar{display:flex;gap:10px;margin-bottom:14px}
+.chip{flex:1;background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:10px 12px}
+.chip small{display:block;color:var(--muted);font-size:12px;text-transform:uppercase;letter-spacing:.06em}
+.chip strong{font-size:18px}
+.chip.pot strong{color:var(--accent)}
+.banner{border-radius:14px;padding:12px 14px;margin-bottom:14px;font-size:14px;font-weight:600}
+.banner.ridder{background:rgba(255,204,51,.1);border:1px solid rgba(255,204,51,.35);color:var(--accent)}
+.banner.tie{background:rgba(255,92,92,.1);border:1px solid rgba(255,92,92,.35);color:var(--red)}
+.turn{text-align:center}
+.who{font-size:28px;font-weight:800;letter-spacing:-.02em}
+.dots{display:flex;justify-content:center;gap:6px;margin-top:8px}
+.dot{width:10px;height:10px;border-radius:50%;background:var(--line)}
+.dot.on{background:var(--accent)}
+.hint{margin-top:6px}
+.dice{display:flex;justify-content:center;gap:20px;margin:26px 0 10px;perspective:400px}
+.die{width:96px;height:96px;background:#fff;border-radius:22px;display:grid;grid-template:repeat(3,1fr)/repeat(3,1fr);padding:15px;box-shadow:0 12px 30px rgba(0,0,0,.45),inset 0 -5px 0 rgba(0,0,0,.08)}
+.die.empty{background:var(--panel2);box-shadow:none;border:2px dashed var(--line)}
+.pip{width:16px;height:16px;border-radius:50%;background:#12141a;place-self:center;visibility:hidden}
+.pip.on{visibility:visible}
+.die.one .pip.on{background:var(--red)}
+.rolling .die{animation:shake .55s ease-in-out}
+.rolling .die:nth-child(2){animation-delay:.04s}
+@keyframes shake{0%{transform:rotate(0) translateY(0)}20%{transform:rotate(-18deg) translateY(-14px)}40%{transform:rotate(14deg) translateY(4px)}60%{transform:rotate(-10deg) translateY(-8px)}80%{transform:rotate(6deg)}100%{transform:rotate(0)}}
+.score{font-size:46px;font-weight:900;letter-spacing:-.03em;min-height:56px;line-height:56px}
+.score.mex{color:var(--accent);text-shadow:0 0 30px rgba(255,204,51,.5)}
+.score.dead{color:var(--red)}
+.score.none{color:var(--line)}
+.actions{margin-top:16px}
+.list .li{display:flex;justify-content:space-between;align-items:center;padding:11px 0;border-top:1px solid var(--line);font-size:16px}
+.list .li:first-child{border-top:0}
+.li .n{display:flex;align-items:center;gap:8px}
+.badge{font-size:12px;font-weight:700;padding:4px 9px;border-radius:999px;background:var(--panel2);border:1px solid var(--line);color:var(--muted)}
+.badge.now{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.badge.low{color:var(--red);border-color:rgba(255,92,92,.5)}
+.badge.mex{color:var(--accent);border-color:rgba(255,204,51,.5)}
+.sips{font-weight:800}
+.horse{font-size:14px}
+
+/* end */
+.end{text-align:center;padding:26px 18px}
+.end .big{font-size:56px;margin-bottom:6px}
+.end .who{font-size:32px}
+.end .drinks{font-size:20px;margin-top:6px;color:var(--muted)}
+.end .drinks b{color:var(--accent)}
+
+/* toasts */
+#toasts{position:fixed;left:0;right:0;top:calc(12px + env(safe-area-inset-top));display:flex;flex-direction:column;align-items:center;gap:8px;pointer-events:none;z-index:50;padding:0 16px}
+.toast{background:#232838;border:1px solid var(--line);padding:12px 16px;border-radius:14px;font-weight:600;font-size:15px;box-shadow:0 10px 30px rgba(0,0,0,.4);max-width:480px;animation:tin .25s ease-out}
+.toast.gold{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.toast.out{opacity:0;transform:translateY(-8px);transition:.3s}
+@keyframes tin{from{opacity:0;transform:translateY(-10px)}to{opacity:1;transform:none}}
+
+/* modal */
+.modal{position:fixed;top:0;right:0;bottom:0;left:0;background:rgba(0,0,0,.6);display:none;align-items:flex-end;justify-content:center;z-index:40}
+.modal.open{display:flex}
+.sheet{background:var(--panel);border:1px solid var(--line);border-radius:22px 22px 0 0;max-width:520px;width:100%;max-height:85vh;overflow:auto;padding:22px 20px calc(22px + env(safe-area-inset-bottom))}
+.sheet h3{font-size:16px;margin:16px 0 6px}
+.sheet p,.sheet li{color:#c8cedb;font-size:15px;line-height:1.5}
+.sheet ul{padding-left:18px}
+footer{text-align:center;color:var(--muted);font-size:12px;margin-top:18px}
+</style>
+</head>
+<body>
+<div class="app">
+  <header>
+    <div class="logo">Mex<span>en</span></div>
+    <div class="hbtns">
+      <button class="iconbtn" onclick="openRules()">Regels</button>
+      <button class="iconbtn" id="newBtn" onclick="newGame()" hidden>Nieuw spel</button>
+    </div>
+  </header>
+  <main id="view"></main>
+  <footer>Drink met mate · 18+</footer>
+</div>
+<div id="toasts"></div>
+
+<div class="modal" id="rules" onclick="if(event.target===this)closeRules()">
+  <div class="sheet">
+    <h2>Spelregels</h2>
+    <h3>Beurt</h3>
+    <p>De eerste speler van de ronde gooit maximaal 3 keer en mag eerder stoppen. Alle volgende spelers mogen maximaal net zo vaak gooien als de eerste speler. Je laatste worp telt.</p>
+    <h3>Scores (hoog → laag)</h3>
+    <ul>
+      <li><b>Mex</b> (2+1): hoogste worp, de inzet verdubbelt</li>
+      <li><b>Dubbels</b>: 6+6 = 600 … 1+1 = 100</li>
+      <li><b>Overig</b>: hoogste steen eerst, 6+3 = 63 … 31 is het laagst</li>
+    </ul>
+    <h3>Verliezer</h3>
+    <p>De laagste score drinkt de inzet. Bij een gelijke laagste score gooien de betrokken spelers één keer tegen elkaar, net zo lang tot er één verliezer is. De verliezer begint de volgende ronde.</p>
+    <h3>🐴 Anaalridder</h3>
+    <p>Gooi je 1+1, dan word je Anaalridder. Bij elke dubbele worp van wie dan ook drinkt de Anaalridder het aantal ogen (6+6 = 6 slokken). Dat blijft zo tot iemand anders 1+1 gooit.</p>
+    <h3>32 (optioneel)</h3>
+    <p>Staat deze regel aan, dan ben je bij een 32 direct de laagste en stopt je beurt.</p>
+    <div style="margin-top:20px"><button class="btn primary" onclick="closeRules()">Begrepen</button></div>
+  </div>
+</div>
+
+<script>
+const KEY = 'mexen-v1';
+const view = document.getElementById('view');
+
+function fresh(){
+  return {
+    phase:'setup',
+    players:[{name:'',sips:0},{name:'',sips:0},{name:'',sips:0}],
+    settings:{ridder:true, rule32:false, base:1},
+    ridder:null, round:null, roundNo:0
+  };
+}
+function load(){ try{ return JSON.parse(localStorage.getItem(KEY)); }catch(e){ return null; } }
+function save(){ try{ localStorage.setItem(KEY, JSON.stringify(S)); }catch(e){} }
+let S = load() || fresh();
+
+/* ---------- helpers ---------- */
+const esc = s => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const name = i => esc(S.players[i].name);
+const slok = n => n === 1 ? '1 slok' : n + ' slokken';
+function d6(){ const a = new Uint32Array(1); crypto.getRandomValues(a); return a[0] % 6 + 1; }
+function vibrate(p){ try{ navigator.vibrate && navigator.vibrate(p); }catch(e){} }
+
+function value(a,b){
+  const hi = Math.max(a,b), lo = Math.min(a,b);
+  if (hi === 2 && lo === 1) return 1000;          // Mex
+  if (a === b) return a * 100;                    // dubbels
+  if (S.settings.rule32 && hi === 3 && lo === 2) return -1; // 32 = direct verloren
+  return hi * 10 + lo;
+}
+function label(v){ return v === 1000 ? 'MEX' : v === -1 ? '32 💀' : String(v); }
+
+function toast(msg, cls=''){
+  const el = document.createElement('div');
+  el.className = 'toast ' + cls; el.innerHTML = msg;
+  document.getElementById('toasts').appendChild(el);
+  setTimeout(()=>{ el.classList.add('out'); setTimeout(()=>el.remove(), 300); }, 3200);
+}
+
+const PIPS = {1:[4],2:[0,8],3:[0,4,8],4:[0,2,6,8],5:[0,2,4,6,8],6:[0,2,3,5,6,8]};
+function dieHTML(n){
+  if (!n) return '<div class="die empty"></div>';
+  let h = `<div class="die${n===1?' one':''}">`;
+  for (let i=0;i<9;i++) h += `<div class="pip${PIPS[n].includes(i)?' on':''}"></div>`;
+  return h + '</div>';
+}
+function setDie(el, n){
+  el.className = 'die' + (n===1?' one':'');
+  el.innerHTML = Array.from({length:9},(_,i)=>`<div class="pip${PIPS[n].includes(i)?' on':''}"></div>`).join('');
+}
+
+/* ---------- setup ---------- */
+function renderSetup(){
+  const st = S.settings;
+  view.innerHTML = `
+    <div class="card">
+      <h2>Spelers</h2>
+      <div id="plist">${S.players.map((p,i)=>`
+        <div class="pl">
+          <input value="${esc(p.name)}" placeholder="Speler ${i+1}" maxlength="16" oninput="S.players[${i}].name=this.value;save()" onkeydown="if(event.key==='Enter'){addPlayer()}">
+          ${S.players.length>2?`<button class="x" onclick="removePlayer(${i})" aria-label="Verwijder">✕</button>`:''}
+        </div>`).join('')}
+      </div>
+      <button class="btn ghost small" onclick="addPlayer()">+ Speler toevoegen</button>
+    </div>
+    <div class="card">
+      <h2>Huisregels</h2>
+      <div class="opt">
+        <div><b>🐴 Anaalridder</b><span class="muted">1+1 = ridder, drinkt bij elke dubbel</span></div>
+        <label class="switch"><input type="checkbox" ${st.ridder?'checked':''} onchange="S.settings.ridder=this.checked;save()"><span></span></label>
+      </div>
+      <div class="opt">
+        <div><b>32 = direct verloren</b><span class="muted">Anders is 31 gewoon de laagste</span></div>
+        <label class="switch"><input type="checkbox" ${st.rule32?'checked':''} onchange="S.settings.rule32=this.checked;save()"><span></span></label>
+      </div>
+      <div class="opt">
+        <div><b>Start-inzet</b><span class="muted">Slokken per ronde, Mex verdubbelt</span></div>
+        <div class="stepper">
+          <button onclick="S.settings.base=Math.max(1,S.settings.base-1);save();render()">−</button>
+          <output>${st.base}</output>
+          <button onclick="S.settings.base=Math.min(10,S.settings.base+1);save();render()">+</button>
+        </div>
+      </div>
+    </div>
+    <button class="btn primary" onclick="startGame()">Start spel</button>
+  `;
+}
+function addPlayer(){
+  S.players.push({name:'',sips:0}); save(); render();
+  const ins = view.querySelectorAll('.pl input'); ins[ins.length-1].focus();
+}
+function removePlayer(i){ S.players.splice(i,1); save(); render(); }
+function startGame(){
+  const ps = S.players.map(p=>({name:p.name.trim(), sips:0})).filter(p=>p.name);
+  if (ps.length < 2){ toast('Vul minimaal 2 namen in'); return; }
+  const names = ps.map(p=>p.name.toLowerCase());
+  if (new Set(names).size !== names.length){ toast('Elke naam mag maar één keer'); return; }
+  S.players = ps; S.ridder = null; S.roundNo = 0;
+  newRound(0);
+}
+function newGame(){
+  if (!confirm('Nieuw spel starten? De slokkenstand wordt gewist.')) return;
+  S.phase = 'setup'; S.round = null; S.ridder = null;
+  S.players = S.players.map(p=>({name:p.name, sips:0}));
+  save(); render();
+}
+
+/* ---------- ronde ---------- */
+function newRound(starter){
+  const n = S.players.length, order = [];
+  for (let i=0;i<n;i++) order.push((starter+i)%n);
+  S.roundNo++;
+  S.round = {order, pos:0, max:null, used:0, dice:null, done:false, results:{}, pot:S.settings.base, tie:null, loser:null};
+  S.phase = 'play'; save(); render();
+}
+const cur = () => { const r=S.round; return r.tie ? r.tie.order[r.tie.pos] : r.order[r.pos]; };
+const limit = () => { const r=S.round; return r.tie ? 1 : (r.pos===0 ? 3 : r.max); };
+function upNext(){
+  const r=S.round;
+  if (r.tie) return r.tie.pos+1 < r.tie.order.length ? r.tie.order[r.tie.pos+1] : null;
+  return r.pos+1 < r.order.length ? r.order[r.pos+1] : null;
+}
+
+let rolling = false;
+function roll(){
+  const r = S.round; if (rolling || r.done) return;
+  rolling = true;
+  const wrap = view.querySelector('.dice'), dies = [...wrap.querySelectorAll('.die')];
+  view.querySelectorAll('.actions button').forEach(b=>b.disabled=true);
+  wrap.classList.remove('rolling'); void wrap.offsetWidth; wrap.classList.add('rolling');
+  vibrate(30);
+  const iv = setInterval(()=>dies.forEach(d=>setDie(d,d6())), 70);
+  setTimeout(()=>{ clearInterval(iv); rolling=false; applyRoll(d6(), d6()); }, 560);
+}
+function applyRoll(a,b){
+  const r = S.round, p = cur();
+  r.used++; r.dice = [a,b];
+  const v = value(a,b);
+
+  if (a === b && S.settings.ridder){
+    if (a === 1){
+      if (S.ridder !== p){ S.ridder = p; toast(`🐴 ${name(p)} is de nieuwe Anaalridder!`, 'gold'); vibrate([60,40,60]); }
+      else toast(`🐴 ${name(p)} blijft Anaalridder`);
+    } else if (S.ridder !== null){
+      S.players[S.ridder].sips += a;
+      toast(`🐴 Anaalridder ${name(S.ridder)} drinkt ${slok(a)}`);
+    }
+  }
+  if (v === 1000){
+    vibrate([80,50,80,50,160]);
+    if (!r.tie) toast(`🔥 MEX! De inzet gaat naar ${slok(r.pot*2)}`, 'gold');
+  }
+  if (v === 1000 || v === -1 || r.used >= limit()) r.done = true;
+  save(); render();
+}
+function stop(){ S.round.done = true; save(); render(); }
+function next(){
+  const r = S.round, p = cur();
+  const res = {v:value(...r.dice), d:r.dice};
+  const used = r.used;
+  r.used = 0; r.dice = null; r.done = false;
+  if (r.tie){
+    r.tie.results[p] = res; r.tie.pos++;
+    if (r.tie.pos >= r.tie.order.length) resolve(r.tie.results);
+  } else {
+    r.results[p] = res;
+    if (r.pos === 0) r.max = used;
+    if (res.v === 1000) r.pot *= 2;
+    r.pos++;
+    if (r.pos >= r.order.length) resolve(r.results);
+  }
+  save(); render();
+}
+function resolve(results){
+  const r = S.round;
+  const ids = Object.keys(results).map(Number);
+  const min = Math.min(...ids.map(i=>results[i].v));
+  const low = ids.filter(i=>results[i].v===min);
+  if (low.length === 1){
+    const L = low[0];
+    r.loser = L; S.players[L].sips += r.pot; r.tie = null; S.phase = 'end';
+    vibrate(200);
+  } else {
+    const ord = r.order.filter(i=>low.includes(i));
+    r.tie = {order:ord, pos:0, results:{}, n:(r.tie ? r.tie.n+1 : 1)};
+    toast(`Gelijkspel! ${ord.map(name).join(' & ')} gooien één keer tegen elkaar`);
+  }
+}
+
+/* ---------- views ---------- */
+function scoreboard(){
+  const sorted = S.players.map((p,i)=>({...p,i})).sort((a,b)=>b.sips-a.sips);
+  return `<div class="card"><h2>Slokken</h2><div class="list">${sorted.map(p=>`
+    <div class="li"><span class="n">${esc(p.name)} ${S.ridder===p.i?'<span class="horse">🐴</span>':''}</span><span class="sips">${p.sips}</span></div>`).join('')}
+  </div></div>`;
+}
+
+function renderPlay(){
+  const r = S.round, p = cur(), lim = limit();
+  const v = r.dice ? value(...r.dice) : null;
+  const scoreCls = v===null ? 'none' : v===1000 ? 'mex' : v===-1 ? 'dead' : '';
+  const nx = upNext();
+  let hint;
+  if (r.tie) hint = `Beslissende worp${r.tie.n>1?' #'+r.tie.n:''}: één worp, laagste drinkt`;
+  else if (r.pos === 0) hint = 'Jij bepaalt hoe vaak iedereen mag gooien (max 3)';
+  else hint = `Max ${lim} ${lim===1?'worp':'worpen'} deze ronde`;
+
+  let actions;
+  if (!r.dice) actions = `<button class="btn primary" onclick="roll()">🎲 Gooi</button>`;
+  else if (r.done) actions = `<button class="btn primary" onclick="next()">${nx!==null ? 'Volgende: '+name(nx)+' →' : 'Bekijk uitslag →'}</button>`;
+  else actions = `<div class="row"><button class="btn ghost" onclick="stop()">Stop op ${label(v)}</button><button class="btn primary" onclick="roll()">🎲 Nog een keer</button></div>`;
+
+  // lijst van deze ronde
+  const resMap = r.results;
+  const done = Object.keys(resMap).map(Number);
+  const minSoFar = done.length > 1 ? Math.min(...done.map(i=>resMap[i].v)) : null;
+  const list = r.order.map(i=>{
+    let badge;
+    if (!r.tie && i === p) badge = '<span class="badge now">Aan de beurt</span>';
+    else if (resMap[i]){
+      const rv = resMap[i].v;
+      const cls = rv===1000 ? 'mex' : (rv===minSoFar ? 'low' : '');
+      badge = `<span class="badge ${cls}">${label(rv)}</span>`;
+    } else badge = '<span class="badge">—</span>';
+    return `<div class="li"><span class="n">${name(i)} ${S.ridder===i?'<span class="horse">🐴</span>':''}</span>${badge}</div>`;
+  }).join('');
+
+  view.innerHTML = `
+    <div class="topbar">
+      <div class="chip"><small>Ronde</small><strong>${S.roundNo}</strong></div>
+      <div class="chip pot"><small>Inzet</small><strong>${slok(r.pot)}</strong></div>
+    </div>
+    ${S.settings.ridder && S.ridder!==null ? `<div class="banner ridder">🐴 Anaalridder: ${name(S.ridder)}</div>` : ''}
+    ${r.tie ? `<div class="banner tie">⚔️ Gelijkspel tussen ${r.tie.order.map(name).join(' & ')}</div>` : ''}
+    <div class="card turn">
+      <div class="who">${name(p)}</div>
+      <div class="dots">${Array.from({length:lim},(_,i)=>`<div class="dot${i<r.used?' on':''}"></div>`).join('')}</div>
+      <div class="hint muted">${hint}</div>
+      <div class="dice">${dieHTML(r.dice?r.dice[0]:0)}${dieHTML(r.dice?r.dice[1]:0)}</div>
+      <div class="score ${scoreCls}">${v===null ? '–' : label(v)}</div>
+      <div class="actions">${actions}</div>
+    </div>
+    <div class="card"><h2>Deze ronde</h2><div class="list">${list}</div></div>
+    ${scoreboard()}
+  `;
+}
+
+function renderEnd(){
+  const r = S.round, L = r.loser;
+  const sorted = r.order.filter(i=>r.results[i]).sort((a,b)=>r.results[b].v - r.results[a].v);
+  view.innerHTML = `
+    <div class="card end">
+      <div class="big">🍺</div>
+      <div class="who">${name(L)}</div>
+      <div class="drinks">drinkt <b>${slok(r.pot)}</b></div>
+    </div>
+    <div class="card"><h2>Uitslag ronde ${S.roundNo}</h2><div class="list">${sorted.map(i=>{
+      const rv = r.results[i].v;
+      return `<div class="li"><span class="n">${name(i)}</span><span class="badge ${i===L?'low':rv===1000?'mex':''}">${label(rv)}</span></div>`;
+    }).join('')}</div></div>
+    <button class="btn primary" onclick="newRound(${L})">Volgende ronde · ${name(L)} begint</button>
+    <div style="height:14px"></div>
+    ${scoreboard()}
+  `;
+}
+
+function render(){
+  document.getElementById('newBtn').hidden = S.phase === 'setup';
+  if (S.phase === 'setup') renderSetup();
+  else if (S.phase === 'play') renderPlay();
+  else renderEnd();
+}
+function openRules(){ document.getElementById('rules').classList.add('open'); }
+function closeRules(){ document.getElementById('rules').classList.remove('open'); }
+
+// iOS Safari: zorgt dat :active (indrukeffect) werkt op knoppen
+document.addEventListener('touchstart', ()=>{}, {passive:true});
+
+document.addEventListener('keydown', e=>{
+  if (S.phase!=='play' || e.target.tagName==='INPUT') return;
+  if (e.code==='Space'){ e.preventDefault(); const r=S.round; r.done ? next() : roll(); }
+});
+render();
+</script>
+</body>
+</html>
