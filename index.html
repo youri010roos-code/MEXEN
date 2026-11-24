@@ -100,12 +100,22 @@ h2{font-size:20px;font-weight:800;letter-spacing:-.02em;margin-bottom:14px}
 .sips{font-weight:800}
 .horse{font-size:14px}
 
+.lives{font-size:11px;letter-spacing:-1px;white-space:nowrap}
+.cols{display:flex;gap:14px;align-items:center}
+.cols>span{min-width:46px;text-align:right}
+.cols>span:first-child{min-width:62px}
+.li.head{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;padding-top:0}
 /* end */
 .end{text-align:center;padding:26px 18px}
 .end .big{font-size:56px;margin-bottom:6px}
 .end .who{font-size:32px}
 .end .drinks{font-size:20px;margin-top:6px;color:var(--muted)}
 .end .drinks b{color:var(--accent)}
+.end .left{margin-top:12px;font-size:14px;color:var(--muted)}
+.end.atje{border-color:var(--accent);background:linear-gradient(180deg,rgba(255,204,51,.16),var(--panel));animation:pulse 1.2s ease-in-out 3}
+.end .tag{display:inline-block;font-size:12px;font-weight:800;text-transform:uppercase;letter-spacing:.08em;color:var(--red);margin-bottom:8px}
+.end.atje .who{font-size:30px;color:var(--accent)}
+@keyframes pulse{50%{box-shadow:0 0 40px rgba(255,204,51,.35)}}
 
 /* toasts */
 #toasts{position:fixed;left:0;right:0;top:calc(12px + env(safe-area-inset-top));display:flex;flex-direction:column;align-items:center;gap:8px;pointer-events:none;z-index:50;padding:0 16px}
@@ -151,6 +161,8 @@ footer{text-align:center;color:var(--muted);font-size:12px;margin-top:18px}
     </ul>
     <h3>Verliezer</h3>
     <p>De laagste score drinkt de inzet. Bij een gelijke laagste score gooien de betrokken spelers één keer tegen elkaar, net zo lang tot er één verliezer is. De verliezer begint de volgende ronde.</p>
+    <h3>❤️ Levens</h3>
+    <p>Iedereen begint met het gekozen aantal levens. Verlies je een ronde, dan gaat er een leven af. Heb je geen levens meer, dan moet je een atje doen en begin je weer met volle levens.</p>
     <h3>🐴 Anaalridder</h3>
     <p>Gooi je 1+1, dan word je Anaalridder. Bij elke dubbele worp van wie dan ook drinkt de Anaalridder het aantal ogen (6+6 = 6 slokken). Dat blijft zo tot iemand anders 1+1 gooit.</p>
     <h3>32 (optioneel)</h3>
@@ -166,20 +178,23 @@ const view = document.getElementById('view');
 function fresh(){
   return {
     phase:'setup',
-    players:[{name:'',sips:0},{name:'',sips:0},{name:'',sips:0}],
-    settings:{ridder:true, rule32:false, base:1},
+    players:[{name:'',sips:0,lives:3,atjes:0},{name:'',sips:0,lives:3,atjes:0},{name:'',sips:0,lives:3,atjes:0}],
+    settings:{ridder:true, rule32:false, base:1, lives:3},
     ridder:null, round:null, roundNo:0
   };
 }
 function load(){ try{ return JSON.parse(localStorage.getItem(KEY)); }catch(e){ return null; } }
 function save(){ try{ localStorage.setItem(KEY, JSON.stringify(S)); }catch(e){} }
 let S = load() || fresh();
+if (S.settings.lives == null) S.settings.lives = 3;
+S.players.forEach(p=>{ if (p.lives == null) p.lives = S.settings.lives; if (p.atjes == null) p.atjes = 0; });
 
 /* ---------- helpers ---------- */
 const esc = s => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const name = i => esc(S.players[i].name);
 const slok = n => n === 1 ? '1 slok' : n + ' slokken';
 function d6(){ const a = new Uint32Array(1); crypto.getRandomValues(a); return a[0] % 6 + 1; }
+function hearts(n){ return n > 5 ? '❤️×' + n : '❤️'.repeat(n); }
 function vibrate(p){ try{ navigator.vibrate && navigator.vibrate(p); }catch(e){} }
 
 function value(a,b){
@@ -235,6 +250,14 @@ function renderSetup(){
         <label class="switch"><input type="checkbox" ${st.rule32?'checked':''} onchange="S.settings.rule32=this.checked;save()"><span></span></label>
       </div>
       <div class="opt">
+        <div><b>❤️ Levens</b><span class="muted">Verlies je een ronde, dan gaat er een leven af. Op 0: atje!</span></div>
+        <div class="stepper">
+          <button onclick="S.settings.lives=Math.max(1,S.settings.lives-1);save();render()">−</button>
+          <output>${st.lives}</output>
+          <button onclick="S.settings.lives=Math.min(10,S.settings.lives+1);save();render()">+</button>
+        </div>
+      </div>
+      <div class="opt">
         <div><b>Start-inzet</b><span class="muted">Slokken per ronde, Mex verdubbelt</span></div>
         <div class="stepper">
           <button onclick="S.settings.base=Math.max(1,S.settings.base-1);save();render()">−</button>
@@ -247,12 +270,12 @@ function renderSetup(){
   `;
 }
 function addPlayer(){
-  S.players.push({name:'',sips:0}); save(); render();
+  S.players.push({name:'',sips:0,lives:S.settings.lives,atjes:0}); save(); render();
   const ins = view.querySelectorAll('.pl input'); ins[ins.length-1].focus();
 }
 function removePlayer(i){ S.players.splice(i,1); save(); render(); }
 function startGame(){
-  const ps = S.players.map(p=>({name:p.name.trim(), sips:0})).filter(p=>p.name);
+  const ps = S.players.map(p=>({name:p.name.trim(), sips:0, lives:S.settings.lives, atjes:0})).filter(p=>p.name);
   if (ps.length < 2){ toast('Vul minimaal 2 namen in'); return; }
   const names = ps.map(p=>p.name.toLowerCase());
   if (new Set(names).size !== names.length){ toast('Elke naam mag maar één keer'); return; }
@@ -260,9 +283,9 @@ function startGame(){
   newRound(0);
 }
 function newGame(){
-  if (!confirm('Nieuw spel starten? De slokkenstand wordt gewist.')) return;
+  if (!confirm('Nieuw spel starten? Slokken en levens worden gewist.')) return;
   S.phase = 'setup'; S.round = null; S.ridder = null;
-  S.players = S.players.map(p=>({name:p.name, sips:0}));
+  S.players = S.players.map(p=>({name:p.name, sips:0, lives:S.settings.lives, atjes:0}));
   save(); render();
 }
 
@@ -340,7 +363,11 @@ function resolve(results){
   if (low.length === 1){
     const L = low[0];
     r.loser = L; S.players[L].sips += r.pot; r.tie = null; S.phase = 'end';
-    vibrate(200);
+    const P = S.players[L];
+    P.lives = Math.max(0, P.lives - 1);
+    r.atje = P.lives === 0;
+    if (r.atje){ P.atjes++; P.lives = S.settings.lives; }
+    vibrate(r.atje ? [200,100,200,100,400] : 200);
   } else {
     const ord = r.order.filter(i=>low.includes(i));
     r.tie = {order:ord, pos:0, results:{}, n:(r.tie ? r.tie.n+1 : 1)};
@@ -351,8 +378,10 @@ function resolve(results){
 /* ---------- views ---------- */
 function scoreboard(){
   const sorted = S.players.map((p,i)=>({...p,i})).sort((a,b)=>b.sips-a.sips);
-  return `<div class="card"><h2>Slokken</h2><div class="list">${sorted.map(p=>`
-    <div class="li"><span class="n">${esc(p.name)} ${S.ridder===p.i?'<span class="horse">🐴</span>':''}</span><span class="sips">${p.sips}</span></div>`).join('')}
+  return `<div class="card"><h2>Stand</h2><div class="list">
+    <div class="li head"><span>Speler</span><span class="cols"><span>Levens</span><span>Atjes</span><span>Slokken</span></span></div>
+    ${sorted.map(p=>`
+    <div class="li"><span class="n">${esc(p.name)} ${S.ridder===p.i?'<span class="horse">🐴</span>':''}</span><span class="cols"><span class="lives">${hearts(p.lives)}</span><span>${p.atjes?'🍺'+p.atjes:'–'}</span><span class="sips">${p.sips}</span></span></div>`).join('')}
   </div></div>`;
 }
 
@@ -383,7 +412,7 @@ function renderPlay(){
       const cls = rv===1000 ? 'mex' : (rv===minSoFar ? 'low' : '');
       badge = `<span class="badge ${cls}">${label(rv)}</span>`;
     } else badge = '<span class="badge">—</span>';
-    return `<div class="li"><span class="n">${name(i)} ${S.ridder===i?'<span class="horse">🐴</span>':''}</span>${badge}</div>`;
+    return `<div class="li"><span class="n">${name(i)} <span class="lives">${hearts(S.players[i].lives)}</span> ${S.ridder===i?'<span class="horse">🐴</span>':''}</span>${badge}</div>`;
   }).join('');
 
   view.innerHTML = `
@@ -410,11 +439,19 @@ function renderEnd(){
   const r = S.round, L = r.loser;
   const sorted = r.order.filter(i=>r.results[i]).sort((a,b)=>r.results[b].v - r.results[a].v);
   view.innerHTML = `
+    ${r.atje ? `
+    <div class="card end atje">
+      <div class="big">🍺🔥</div>
+      <div class="tag">Geen levens meer</div>
+      <div class="who">${name(L)} moet een ATJE!</div>
+      <div class="drinks">Daarna weer <b>${hearts(S.settings.lives)}</b></div>
+    </div>` : `
     <div class="card end">
       <div class="big">🍺</div>
       <div class="who">${name(L)}</div>
       <div class="drinks">drinkt <b>${slok(r.pot)}</b></div>
-    </div>
+      <div class="left">Verliest een leven · nog ${hearts(S.players[L].lives)}</div>
+    </div>`}
     <div class="card"><h2>Uitslag ronde ${S.roundNo}</h2><div class="list">${sorted.map(i=>{
       const rv = r.results[i].v;
       return `<div class="li"><span class="n">${name(i)}</span><span class="badge ${i===L?'low':rv===1000?'mex':''}">${label(rv)}</span></div>`;
