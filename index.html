@@ -105,6 +105,18 @@ h2{font-size:20px;font-weight:800;letter-spacing:-.02em;margin-bottom:14px}
 .cols>span{min-width:46px;text-align:right}
 .cols>span:first-child{min-width:62px}
 .li.head{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;padding-top:0}
+.gate{position:fixed;top:0;right:0;bottom:0;left:0;z-index:30;background:rgba(11,13,18,.96);display:flex;align-items:center;justify-content:center;padding:24px;animation:tin .25s ease-out}
+.gate-in{width:100%;max-width:420px;text-align:center}
+.gate .big{font-size:84px;line-height:1;margin-bottom:16px}
+.gate .tag{display:inline-block;font-size:12px;font-weight:800;text-transform:uppercase;letter-spacing:.08em;color:var(--red);margin-bottom:8px}
+.gate-name{font-size:40px;font-weight:900;letter-spacing:-.03em}
+.gate-msg{font-size:24px;color:#c8cedb;margin-top:4px}
+.gate-msg b{color:var(--accent)}
+.gate .left{margin-top:12px;font-size:14px;color:var(--muted)}
+.gate .btn{margin-top:36px;font-size:19px;padding:18px}
+.gate.atje .gate-name{color:var(--accent)}
+.gate.atje .gate-in{animation:pulse2 1.2s ease-in-out infinite}
+@keyframes pulse2{50%{transform:scale(1.03)}}
 /* end */
 .end{text-align:center;padding:26px 18px}
 .end .big{font-size:56px;margin-bottom:6px}
@@ -435,8 +447,23 @@ function renderPlay(){
   `;
 }
 
+function drank(){ S.round.drunk = true; vibrate(40); save(); render(); }
 function renderEnd(){
   const r = S.round, L = r.loser;
+  if (!r.drunk){
+    view.innerHTML = `
+      <div class="gate${r.atje?' atje':''}">
+        <div class="gate-in">
+          <div class="big">${r.atje ? '🍺🔥' : '🍺'}</div>
+          ${r.atje ? '<div class="tag">Geen levens meer</div>' : ''}
+          <div class="gate-name">${name(L)}</div>
+          <div class="gate-msg">${r.atje ? 'moet een <b>ATJE</b> doen!' : 'moet <b>' + slok(r.pot) + '</b> nemen'}</div>
+          ${r.atje ? '' : `<div class="left">Nog ${hearts(S.players[L].lives)}</div>`}
+          <button class="btn primary" onclick="drank()">${r.atje ? '✅ Atje gedaan' : '✅ Gedronken'}</button>
+        </div>
+      </div>`;
+    return;
+  }
   const sorted = r.order.filter(i=>r.results[i]).sort((a,b)=>r.results[b].v - r.results[a].v);
   view.innerHTML = `
     ${r.atje ? `
